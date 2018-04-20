@@ -4,24 +4,80 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const path = require('path');
-
 const multer = require('multer');
 const coordinates = require('./coordinates');
-
 const ExifImage = require('exif').ExifImage;
+const moment = require('moment');
 
 
 const app = express();
 
+const https = require('https');
+const fs = require('fs');
+
+const sslkey = fs.readFileSync('ssl-key.pem');
+const sslcert = fs.readFileSync('ssl-cert.pem')
+
+const options = {
+      key: sslkey,
+      cert: sslcert
+};
+
+
+https.createServer(options, app).listen(3000);
+
+app.get('/', (req, res) => {
+  res.redirect('index.html');
+});
+//force redirection from HTTP to HTTPS
+const http = require('http');
+
+http.createServer((req, res) => {
+      res.writeHead(301, { 'Location': 'https://localhost:3000' + req.url });
+      res.end();
+}).listen(8080);
+
+// app.use((req, res, next) => {
+//   if (req.query.token === 'SECRET_TOKEN_TOKEN') {
+//       next();
+//   }
+//   else {
+//       res.status(401).send('Please sign in.');
+//   }
+// });
+
+
+// require('dotenv').config();
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
+
+// const passport = require('passport');
+// const LocalStrategy = require('passport-local').Strategy;
+// passport.use(new LocalStrategy(
+//     (username, password, done) => {
+//         if (username !== process.env.username || password !== process.env.password) {
+//             done(null, false, {message: 'Incorrect credentials.'});
+//             return;
+//         }
+//         return done(null, {});
+//     }
+// ));
+// app.use(passport.initialize());
+
+// app.post('/login', 
+//   passport.authenticate('local', { 
+//     successRedirect: '/', 
+//     failureRedirect: '/test', 
+//     session: false })
+// );
+
+
+
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-
 mongoose.connect('mongodb://localhost/viewerdb').then(() => {
-  app.listen(3000,() => {
-    console.log('connected to server');
-  });
 }, err => {
   console.log('Connection to db failed: ' + err);
 });
@@ -85,7 +141,7 @@ app.post('/cats', (req,res) => {
   console.log(req.body);
   const billi = new Cat (
     {
-      time: Date.now(),
+      time: new Date(moment().format('MMMM Do YYYY,h:mm:ss a')),
       category: req.body.category,
       title: req.body.title,
       details: req.body.details,
@@ -105,6 +161,38 @@ app.post('/cats', (req,res) => {
      })
   });
 
-
+  app.post('/update', (req, res) => {
+    console.log(req.body.id);
+    
+    Cat.findById(req.body.id, (err, data) => {
+      if (err) throw err;     
+      data.category= req.body.category;
+      data.title= req.body.title;
+      data.details= req.body.details;
+      data.save();
+    });
+   
+    res.redirect('/')
+  })
   
- 
+  
+app.post('/update', (req, res) => {
+  console.log(req.body.word);
+
+
+  Cat.find({ name: req.body.word }, (err, data) => {
+    if (err) res.send(err);
+    console.log(data);
+    res.send(data);
+  })
+})
+
+app.post('/delete', (req, res) => {
+  console.log(req.body.word);
+  Cat.findByIdAndRemove(req.body.word,(err,res)=>{
+     if(err) throw err;
+     console.log(res);  
+
+  })
+  res.redirect('/')
+})

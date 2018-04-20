@@ -99,6 +99,20 @@ body, html {
    
     
 }
+.deleteButton{
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-decoration: none;
+    font-size: 16px;
+    display: block; 
+    margin: 10px auto;
+   
+    
+}
+
+
 #sort {
     display: block; /* Hidden by default */
     position: absolute; /* Stay in place */

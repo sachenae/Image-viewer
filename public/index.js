@@ -21,6 +21,8 @@ function view_thumbnails(jsonData){
         let buttonDiv=document.createElement('div');
         let Image=document.createElement('img');
         let button=document.createElement('button');
+        const editButton = document.createElement('button');
+        const deleteButton = document.createElement('button');
 
         Image.src=each.thumbnail;
         Image.className='image' ;
@@ -30,6 +32,38 @@ function view_thumbnails(jsonData){
         titleDiv.innerHTML='<h4>'+each.title+'</h4>';
         button.innerHTML='view full image';
         button.className='viewbutton';
+        editButton.className='viewbutton';
+        
+        
+        
+
+        deleteButton.innerHTML = 'Delete';
+        editButton.innerHTML = 'Edit';
+        deleteButton.className = 'deleteButton';
+
+        editButton.addEventListener('click', () => {
+            localStorage.setItem('id', each._id);
+            localStorage.setItem('category', each.category);
+            localStorage.setItem('title', each.title);
+            localStorage.setItem('details', each.details);
+
+            window.location = 'edit.html'
+        })
+
+        
+        deleteButton.addEventListener('click', () => {
+
+            fetch('https://localhost:3000/delete', {
+                method : 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({word : each._id})
+            })
+            fetch('https://localhost:3000');
+        })
+
 
         eachImageDiv.appendChild(Image);
         buttonDiv.appendChild(button);
@@ -37,6 +71,8 @@ function view_thumbnails(jsonData){
         eachDiv.appendChild(showDate);
         eachDiv.appendChild(titleDiv);
         eachDiv.appendChild(buttonDiv);
+        buttonDiv.appendChild(editButton);
+        buttonDiv.appendChild(deleteButton);
         
 
       document.querySelector('#view_container').appendChild(eachDiv);
@@ -61,7 +97,7 @@ function view_thumbnails(jsonData){
       let span = document.getElementsByClassName("close")[0];
         span.onclick = function() { 
            modal.style.display = "none";
-        } 
+    } 
         
         
     }
