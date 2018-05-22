@@ -8,6 +8,10 @@ const multer = require('multer');
 const coordinates = require('./coordinates');
 const ExifImage = require('exif').ExifImage;
 const moment = require('moment');
+const helmet = require('helmet');
+const cors = require('cors');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
 
 const app = express();
@@ -72,6 +76,45 @@ app.use(bodyParser.json());
 // );
 
 
+//middleware
+app.use(helmet());
+
+app.use(cors());
+
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.use(passport.initialize());
+app.use(express.static('public'));
+//Parse aplication/json
+app.use(bodyParser.json());
+app.use('/users', users);
+
+
+//Passport 
+//////////////////////////////////////////////////////////////////
+require('dotenv').config();
+//Username and Password in .env
+passport.use(new LocalStrategy(
+    (username, password, done) => {
+        if (username !== process.env.DB_USR || password !== process.env.DB_PWD) {
+            done(null, false, {
+                message: 'Incorrect credentials.'
+            });
+            return;
+        }
+        return done(null, {});
+    }
+));
+
+//login route
+app.post('/login',
+    passport.authenticate('local', {
+        successRedirect: '/',
+        failureRedirect: '/login',
+        session: false
+    })
+);
 
 
 
